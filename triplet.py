@@ -129,3 +129,43 @@ def reverse_triplet(obj):
         'tail_id': obj['head_id'],
         'tail': obj['head']
     }
+
+class Hop1Index:
+    def __init__(self, train_path, entity_dict, key_col=0, max_context_size=10, shuffle=False):
+        self.num_entities = len(entity_dict)
+        triples = json.load(open(train_path, 'r', encoding='utf-8'))
+        np_triples = np.empty((len(triples), 3), dtype=object)
+
+        for i, triple in enumerate(triples):
+            head_inx = entity_dict.entity_to_idx(triple["head_id"])
+            np_triples[i] = [head_inx, triple["relation"], triple["tail_id"]]
+        triples = np_triples
+
+        self.max_context_size = max_context_size
+        self.shuffle = shuffle
+        self.triples = np.copy(triples[triples[:, key_col].argsort()])
+        keys, values_offset = np.unique(
+            self.triples[:, key_col].astype(int), axis=0, return_index=True)
+        
+        values_offset = np.append(values_offset, len(self.triples))
+        self.keys = keys
+        self.values_offset = values_offset
+        self.key_to_start = np.full([self.num_entities,], -1)
+        self.key_to_start[keys] = self.values_offset[:-1]
+        self.key_to_end = np.full([self.num_entities,], -1)
+        self.key_to_end[keys] = self.values_offset[1:]
+
+    def __getitem__(self, item):
+        start = self.key_to_start[item]
+        end = self.key_to_end[item]
+        context = self.triples[start:end, [1, 2]]
+        if self.shuffle:
+            context = np.copy(context)
+            np.random.shuffle(context)
+        if end - start > self.max_context_size: 
+            context = context[:self.max_context_size]
+        return context
+
+    def get(self, item):
+        return self[item]
+    
