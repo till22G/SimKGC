@@ -4,7 +4,7 @@ import glob
 from transformers import AutoTokenizer
 
 from config import args
-from triplet import TripletDict, EntityDict, LinkGraph
+from triplet import TripletDict, EntityDict, LinkGraph, Hop1Index
 from logger_config import logger
 
 train_triplet_dict: TripletDict = None
@@ -12,6 +12,12 @@ all_triplet_dict: TripletDict = None
 link_graph: LinkGraph = None
 entity_dict: EntityDict = None
 tokenizer: AutoTokenizer = None
+
+def _init_hop_1_index():
+    global hop_1_index
+    if not hop_1_index:
+        hop_1_index = Hop1Index(train_path=args.train_path, entity_dict=entity_dict, 
+                                max_context_size=args.max_context_size, shuffle=args.shuffle_context)
 
 
 def _init_entity_dict():
@@ -37,6 +43,11 @@ def _init_link_graph():
     global link_graph
     if not link_graph:
         link_graph = LinkGraph(train_path=args.train_path)
+        
+
+def get_hop_1_index():
+    _init_hop_1_index()
+    return hop_1_index
 
 
 def get_entity_dict():
