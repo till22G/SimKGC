@@ -56,6 +56,30 @@ def get_neighbor_desc(head_id: str, tail_id: str = None) -> str:
     return ' '.join(entities)
 
 
+def _build_context_string(head_id: str, relation: str, tail_id: str, max_context_size: int, use_context_desc: bool):
+    context_string = ""
+    if head_id == "":
+        return ""
+    head_idx = entity_dict.entity_to_idx(head_id)
+    context = get_hop_1_index().get(head_idx)
+    sep_token = get_tokenizer().sep_token
+
+    for neighbor in context[:max_context_size]:
+        n_relation, n_tail_id = neighbor
+        if n_tail_id == tail_id:
+            continue
+        n_tail_text = _parse_entity_name(entity_dict.get_entity_by_id(n_tail_id).entity)
+        ## I might need to shorten the description text
+        if use_context_desc:
+            #n_tail_text = _concat_name_desc(n_tail_text, entity_dict.get_entity_by_id(n_tail_id).entity_desc)
+            pass
+        head_name = _parse_entity_name(entity_dict.get_entity_by_id(head_id).entity)
+        context_string += f", {n_relation} {n_tail_text}"
+        if context_string == ", ":
+            return ""
+    
+    return f"{context_string}"
+
 class Example:
 
     def __init__(self, head_id, relation, tail_id, **kwargs):
@@ -91,14 +115,45 @@ class Example:
             if len(tail_desc.split()) < 20:
                 tail_desc += ' ' + get_neighbor_desc(head_id=self.tail_id, tail_id=self.head_id)
 
-        head_word = _parse_entity_name(self.head)
-        head_text = _concat_name_desc(head_word, head_desc)
+        if args.use_context:
+            head_word = _parse_entity_name(self.head)
+            if args.use_descriptions:
+                head_word = _concat_name_desc(head_word, head_desc)
+            head_text = head_word
+
+            head_context = _build_context_string(self.head_id, self.relation, self.tail_id, 
+                                                 max_context_size = args.max_context_size,
+                                                 use_desc = args.use_context_desc)
+            
+            ## limit head text
+            head_text = " ".join(head_text.split(" ")[:40])
+            head_text = f"{head_text} {head_context}"
+            tail_word = _parse_entity_name(self.tail)
+            if args.use_descriptions:
+                tail_text = _concat_name_desc(tail_word, tail_desc)
+
+            if args.use_tail_context:
+                tail_context = _build_context_string(self.tail_id, self.relation, self.head_id,
+                                                     max_context_size = args.max_context_size,
+                                                     use_desc = args.use_context_desc)
+                
+                tail_text = " ".join(tail_text.split(" ")[:40])
+                tail_text = f"{tail_text} {tail_context}"
+
+            text_pair = self.relation
+
+        else:
+            head_word = _parse_entity_name(self.head)
+            head_text = _concat_name_desc(head_word, head_desc)
+            tail_word = _parse_entity_name(self.tail)
+            tail_text = _concat_name_desc(tail_word, tail_desc)
+            
         hr_encoded_inputs = _custom_tokenize(text=head_text,
-                                             text_pair=self.relation)
+                                             text_pair=text_pair)
 
         head_encoded_inputs = _custom_tokenize(text=head_text)
 
-        tail_word = _parse_entity_name(self.tail)
+        
         tail_encoded_inputs = _custom_tokenize(text=_concat_name_desc(tail_word, tail_desc))
 
         return {'hr_token_ids': hr_encoded_inputs['input_ids'],
