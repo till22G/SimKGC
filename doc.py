@@ -154,7 +154,7 @@ class Example:
         head_encoded_inputs = _custom_tokenize(text=head_text)
 
         
-        tail_encoded_inputs = _custom_tokenize(text=_concat_name_desc(tail_word, tail_desc))
+        tail_encoded_inputs = _custom_tokenize(tail_text)
 
         return {'hr_token_ids': hr_encoded_inputs['input_ids'],
                 'hr_token_type_ids': hr_encoded_inputs['token_type_ids'],
