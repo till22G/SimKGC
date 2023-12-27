@@ -159,9 +159,14 @@ class Example:
 
         if not (args.use_link_graph or args.use_head_context or args.use_tail_context):
             head_word = _parse_entity_name(self.head)
-            head_text = _concat_name_desc(head_word, head_desc)
+            if args.use_descriptions:
+                head_word = _concat_name_desc(head_word, head_desc)
+            head_text = head_word
+
             tail_word = _parse_entity_name(self.tail)
-            tail_text = _concat_name_desc(tail_word, tail_desc)
+            if args.use_descriptions:
+                tail_word = _concat_name_desc(tail_word, tail_desc)
+            tail_text = tail_word
 
             
         text_pair = self.relation
