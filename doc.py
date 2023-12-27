@@ -56,7 +56,7 @@ def get_neighbor_desc(head_id: str, tail_id: str = None) -> str:
     return ' '.join(entities)
 
 
-def _build_context_string(head_id: str, relation: str, tail_id: str, max_context_size: int, use_context_desciptions: bool):
+def _build_context_string(head_id: str, relation: str, tail_id: str, max_context_size: int, use_context_descriptions: bool):
     context_string = ""
     if head_id == "":
         return ""
@@ -70,7 +70,7 @@ def _build_context_string(head_id: str, relation: str, tail_id: str, max_context
             continue
         n_tail_text = _parse_entity_name(entity_dict.get_entity_by_id(n_tail_id).entity)
         ## I might need to shorten the description text
-        """ if use_context_desciptions:
+        """ if use_context_descriptions:
             #n_tail_text = _concat_name_desc(n_tail_text, entity_dict.get_entity_by_id(n_tail_id).entity_desc)
             pass """
         #head_name = _parse_entity_name(entity_dict.get_entity_by_id(head_id).entity)
@@ -125,7 +125,7 @@ class Example:
 
             head_context = _build_context_string(self.head_id, self.relation, self.tail_id, 
                                                  max_context_size = args.max_context_size,
-                                                 use_context_desciptions = args.use_context_desciptions)
+                                                 use_context_descriptions = args.use_context_descriptions)
             
             # limit head text
             head_text = " ".join(head_word.split(" ")[:40])
@@ -145,7 +145,7 @@ class Example:
 
             tail_context = _build_context_string(self.tail_id, self.relation, self.head_id,
                                                  max_context_size = args.max_context_size,
-                                                 use_context_desciptions = args.use_context_desciptions)
+                                                 use_context_descriptions = args.use_context_descriptions)
             
             # limit tail text
             tail_text = " ".join(tail_word.split(" ")[:40])
@@ -178,7 +178,7 @@ class Example:
         
         tail_encoded_inputs = _custom_tokenize(tail_text)
 
-        print("---------------- Head-relation decoded ----------------")
+        """ print("---------------- Head-relation decoded ----------------")
         decoded_hr_tokens =  get_tokenizer().decode(hr_encoded_inputs["input_ids"])
         print(decoded_hr_tokens)
 
@@ -189,7 +189,7 @@ class Example:
         print("---------------- Head decoded ----------------")
         decoded_h_tokens =  get_tokenizer().decode(head_encoded_inputs["input_ids"])
         print(decoded_h_tokens)
-        print("---------------------------------------")
+        print("---------------------------------------") """
 
         return {'hr_token_ids': hr_encoded_inputs['input_ids'],
                 'hr_token_type_ids': hr_encoded_inputs['token_type_ids'],

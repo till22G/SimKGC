@@ -20,7 +20,6 @@ python3 -u main.py \
 --pretrained-model bert-base-uncased \
 --pooling mean \
 --lr 1e-5 \
---use-link-graph \
 --train-path "$DATA_DIR/train.txt.json" \
 --valid-path "$DATA_DIR/valid.txt.json" \
 --task ${TASK} \
@@ -34,6 +33,7 @@ python3 -u main.py \
 --epochs 10 \
 --workers 4 \
 --max-to-keep 5 "$@" \
---use-tail-context \
---use-head-context \
---max-context-size 15 
+#--max-context-size 15 \
+#--use-head-context \
+#--use-tail-context \
+#--use-link-graph \

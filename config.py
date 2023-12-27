@@ -84,8 +84,6 @@ parser.add_argument('--use-head-context', action='store_true',
                     help='set this option to use conext for the head')
 parser.add_argument('--use-tail-context', action='store_true',
                     help='set this option to use conext for the tail')
-parser.add_argument('--use-context-desciptions', action='store_true',
-                    help='set this option to use conext for the head')
 parser.add_argument('--max-context-size', type=int, default=15,
                     help='set the numbet max neighboring entities beeng used for context')
 parser.add_argument('--shuffle-context', action='store_true',
@@ -95,7 +93,7 @@ parser.add_argument('--use-descriptions', action='store_true',
 parser.add_argument('--use-context-relation', action='store_true',
                     help='set this option to add the relation of the context to the input string')
 parser.add_argument('--use-context-descriptions', action='store_true',
-                    help='set option to use secriptions of context entities')
+                    help='set option to use descriptions of context entities')
 
 
 args = parser.parse_args()
