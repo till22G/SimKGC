@@ -92,6 +92,10 @@ parser.add_argument('--shuffle-context', action='store_true',
                     help='set to shuffle all neighbords')
 parser.add_argument('--use-descriptions', action='store_true',
                     help='use this option to add descriptions to the embddings')
+parser.add_argument('--use-context-relation', action='store_true',
+                    help='set this option to add the relation of the context to the input string')
+parser.add_argument('--use-context-descriptions', action='store_true',
+                    help='set option to use secriptions of context entities')
 
 
 args = parser.parse_args()
