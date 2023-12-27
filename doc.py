@@ -8,7 +8,7 @@ from typing import Optional, List
 from config import args
 from triplet import reverse_triplet
 from triplet_mask import construct_mask, construct_self_negative_mask
-from dict_hub import get_entity_dict, get_link_graph, get_tokenizer
+from dict_hub import get_entity_dict, get_link_graph, get_tokenizer, get_hop_1_index
 from logger_config import logger
 
 entity_dict = get_entity_dict()
@@ -56,29 +56,29 @@ def get_neighbor_desc(head_id: str, tail_id: str = None) -> str:
     return ' '.join(entities)
 
 
-def _build_context_string(head_id: str, relation: str, tail_id: str, max_context_size: int, use_context_desc: bool):
+def _build_context_string(head_id: str, relation: str, tail_id: str, max_context_size: int, use_context_desciptions: bool):
     context_string = ""
     if head_id == "":
         return ""
     head_idx = entity_dict.entity_to_idx(head_id)
     context = get_hop_1_index().get(head_idx)
-    sep_token = get_tokenizer().sep_token
+    #sep_token = get_tokenizer().sep_token
 
     for neighbor in context[:max_context_size]:
         n_relation, n_tail_id = neighbor
-        if n_tail_id == tail_id:
+        if n_tail_id == tail_id or tail_id == head_id:
             continue
         n_tail_text = _parse_entity_name(entity_dict.get_entity_by_id(n_tail_id).entity)
         ## I might need to shorten the description text
-        if use_context_desc:
+        """ if use_context_desciptions:
             #n_tail_text = _concat_name_desc(n_tail_text, entity_dict.get_entity_by_id(n_tail_id).entity_desc)
-            pass
-        head_name = _parse_entity_name(entity_dict.get_entity_by_id(head_id).entity)
-        context_string += f", {n_relation} {n_tail_text}"
+            pass """
+        #head_name = _parse_entity_name(entity_dict.get_entity_by_id(head_id).entity)
+        context_string += f", {n_tail_text}"
         if context_string == ", ":
             return ""
     
-    return f"{context_string}"
+    return f"{context_string[2:]}"
 
 class Example:
 
@@ -115,39 +115,56 @@ class Example:
             if len(tail_desc.split()) < 20:
                 tail_desc += ' ' + get_neighbor_desc(head_id=self.tail_id, tail_id=self.head_id)
 
-        if args.use_context:
+            head_text = _concat_name_desc(_parse_entity_name(self.head), head_desc)
+            tail_text = _concat_name_desc(_parse_entity_name(self.tail), tail_desc)
+
+        if args.use_head_context:
             head_word = _parse_entity_name(self.head)
             if args.use_descriptions:
                 head_word = _concat_name_desc(head_word, head_desc)
-            head_text = head_word
 
             head_context = _build_context_string(self.head_id, self.relation, self.tail_id, 
                                                  max_context_size = args.max_context_size,
-                                                 use_desc = args.use_context_desc)
+                                                 use_context_desciptions = args.use_context_desciptions)
             
-            ## limit head text
-            head_text = " ".join(head_text.split(" ")[:40])
-            head_text = f"{head_text} {head_context}"
+            # limit head text
+            head_text = " ".join(head_word.split(" ")[:40])
+            head_text = f"{head_text} : {head_context}"
+
+            if not args.use_tail_context:
+                tail_word = _parse_entity_name(self.tail)
+                if args.use_descriptions:
+                    assert False
+                    tail_word = _concat_name_desc(tail_word, tail_desc)
+                tail_text = tail_word
+        
+        if args.use_tail_context:
             tail_word = _parse_entity_name(self.tail)
             if args.use_descriptions:
-                tail_text = _concat_name_desc(tail_word, tail_desc)
+                tail_word = _concat_name_desc(tail_word, tail_desc)
 
-            if args.use_tail_context:
-                tail_context = _build_context_string(self.tail_id, self.relation, self.head_id,
-                                                     max_context_size = args.max_context_size,
-                                                     use_desc = args.use_context_desc)
-                
-                tail_text = " ".join(tail_text.split(" ")[:40])
-                tail_text = f"{tail_text} {tail_context}"
+            tail_context = _build_context_string(self.tail_id, self.relation, self.head_id,
+                                                 max_context_size = args.max_context_size,
+                                                 use_context_desciptions = args.use_context_desciptions)
+            
+            # limit tail text
+            tail_text = " ".join(tail_word.split(" ")[:40])
+            tail_text = f"{tail_text} : {tail_context}"
 
-            text_pair = self.relation
+            if not args.use_head_context:
+                head_word = _parse_entity_name(self.head)
+                if args.use_descriptions:
+                    head_word = _concat_name_desc(head_word, head_desc)    
+                head_text = head_word
 
-        else:
+        if not (args.use_link_graph or args.use_head_context or args.use_tail_context):
             head_word = _parse_entity_name(self.head)
             head_text = _concat_name_desc(head_word, head_desc)
             tail_word = _parse_entity_name(self.tail)
             tail_text = _concat_name_desc(tail_word, tail_desc)
+
             
+        text_pair = self.relation
         hr_encoded_inputs = _custom_tokenize(text=head_text,
                                              text_pair=text_pair)
 
@@ -155,6 +172,19 @@ class Example:
 
         
         tail_encoded_inputs = _custom_tokenize(tail_text)
+
+        print("---------------- Head-relation decoded ----------------")
+        decoded_hr_tokens =  get_tokenizer().decode(hr_encoded_inputs["input_ids"])
+        print(decoded_hr_tokens)
+
+        print("---------------- Tail decoded ----------------")
+        decoded_tail_tokens =  get_tokenizer().decode(tail_encoded_inputs["input_ids"])
+        print(decoded_tail_tokens)
+       
+        print("---------------- Head decoded ----------------")
+        decoded_h_tokens =  get_tokenizer().decode(head_encoded_inputs["input_ids"])
+        print(decoded_h_tokens)
+        print("---------------------------------------")
 
         return {'hr_token_ids': hr_encoded_inputs['input_ids'],
                 'hr_token_type_ids': hr_encoded_inputs['token_type_ids'],

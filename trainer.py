@@ -53,7 +53,7 @@ class Trainer:
             batch_size=args.batch_size,
             shuffle=True,
             collate_fn=collate,
-            num_workers=args.workers,
+            num_workers=1,
             pin_memory=True,
             drop_last=True)
 

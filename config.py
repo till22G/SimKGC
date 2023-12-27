@@ -79,7 +79,31 @@ parser.add_argument('--neighbor-weight', default=0.0, type=float,
 parser.add_argument('--eval-model-path', default='', type=str, metavar='N',
                     help='path to model, only used for evaluation')
 
+# used to add context
+parser.add_argument('--use-head-context', action='store_true',
+                    help='set this option to use conext for the head')
+parser.add_argument('--use-tail-context', action='store_true',
+                    help='set this option to use conext for the tail')
+parser.add_argument('--use-context-desciptions', action='store_true',
+                    help='set this option to use conext for the head')
+parser.add_argument('--max-context-size', type=int, default=15,
+                    help='set the numbet max neighboring entities beeng used for context')
+parser.add_argument('--shuffle-context', action='store_true',
+                    help='set to shuffle all neighbords')
+parser.add_argument('--use-descriptions', action='store_true',
+                    help='use this option to add descriptions to the embddings')
+
+
 args = parser.parse_args()
+
+# assertions for context integration
+if args.use_link_graph:
+    assert not (args.use_head_context or args.use_tail_context)
+    assert args.use_descriptions
+
+if (args.use_head_context or args.use_tail_context):
+    assert not args.use_link_graph
+    
 
 assert not args.train_path or os.path.exists(args.train_path)
 assert args.pooling in ['cls', 'mean', 'max']

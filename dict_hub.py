@@ -7,6 +7,7 @@ from config import args
 from triplet import TripletDict, EntityDict, LinkGraph, Hop1Index
 from logger_config import logger
 
+hop_1_index: Hop1Index = None
 train_triplet_dict: TripletDict = None
 all_triplet_dict: TripletDict = None
 link_graph: LinkGraph = None
