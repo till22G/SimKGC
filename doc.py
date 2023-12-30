@@ -74,7 +74,7 @@ def _build_context_string(head_id: str, relation: str, tail_id: str, max_context
             #n_tail_text = _concat_name_desc(n_tail_text, entity_dict.get_entity_by_id(n_tail_id).entity_desc)
             pass """
         #head_name = _parse_entity_name(entity_dict.get_entity_by_id(head_id).entity)
-        context_string += f", {n_tail_text}"
+        context_string += f", {n_relation }{n_tail_text}"
         if context_string == ", ":
             return ""
     

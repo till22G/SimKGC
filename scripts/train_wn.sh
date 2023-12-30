@@ -33,7 +33,7 @@ python3 -u main.py \
 --epochs 50 \
 --workers 4 \
 --max-to-keep 3 "$@" \
-#--max-context-size 15 \
-#--use-head-context \
+--max-context-size 50 \
+--use-head-context \
 #--use-tail-context \
 #--use-link-graph \
