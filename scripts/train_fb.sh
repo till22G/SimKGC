@@ -34,6 +34,6 @@ python3 -u main.py \
 --workers 4 \
 --max-to-keep 5 "$@" \
 --max-context-size 50 \
---use-tail-context \
 --use-head-context \
+#--use-tail-context \
 #--use-link-graph \
