@@ -44,10 +44,16 @@ class CustomBertModel(nn.Module, ABC):
         self.tail_bert = deepcopy(self.hr_bert)
 
     def _encode(self, encoder, token_ids, mask, token_type_ids):
-        outputs = encoder(input_ids=token_ids,
-                          attention_mask=mask,
-                          token_type_ids=token_type_ids,
-                          return_dict=True)
+        if self.args.pretrained_model == "distilbert-base-uncased":
+            outputs = encoder(input_ids=token_ids,
+                              attention_mask=mask,
+                              return_dict=True)
+
+        else:
+            outputs = encoder(input_ids=token_ids,
+                            attention_mask=mask,
+                            token_type_ids=token_type_ids,
+                            return_dict=True)
 
         last_hidden_state = outputs.last_hidden_state
         cls_output = last_hidden_state[:, 0, :]
